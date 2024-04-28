@@ -13,41 +13,48 @@ import (
 
 // NewEmail generates and returns a random email
 func NewEmail() (Email, error) {
+	var email Email
+
 	if err := initDomains(); err != nil {
-		return "", fmt.Errorf("failed to init domains: %w", err)
+		return email, fmt.Errorf("failed to init domains: %w", err)
 	}
 
-	username := randomString(emailUsernameLength)
-	domain := randomValue(domains)
-	email := fmt.Sprintf("%s@%s", username, domain)
+	email.username = randomString(emailUsernameLength)
+	email.domain = randomValue(domains)
 
-	return Email(email), nil
+	return email, nil
 }
 
 // CustomEmail verifies the provided email is valid before returnning that email
-func CustomEmail(email string) (Email, error) {
+func CustomEmail(e string) (Email, error) {
+	var email Email
+
 	if err := initDomains(); err != nil {
-		return "", fmt.Errorf("failed to init domains: %w", err)
+		return email, fmt.Errorf("failed to init domains: %w", err)
 	}
 
-	emailParts := strings.Split(email, "@")
+	emailParts := strings.Split(e, "@")
 	if len(emailParts) != 2 {
-		return "", errorInvalidEmail
+		return email, errorInvalidEmail
 	}
 
 	domain := emailParts[1]
 	if !slices.Contains(domains, domain) {
-		return "", errorInvalidDomain
+		return email, errorInvalidDomain
 	}
 
-	return Email(email), nil
+	email.username = emailParts[0]
+	email.domain = domain
+
+	return email, nil
 }
 
 // GetInbox returns all the messages in the inbox currently
 func (e Email) GetInbox() ([]MessageSummary, error) {
 	var messages []MessageSummary
 
-	resp, err := http.Get(fmt.Sprintf("%s/?action=getMessages&domain=%s", host1SecMail, e))
+	url := fmt.Sprintf("%s/?action=getMessages&login=%s&domain=%s", host1SecMail, e.username, e.domain)
+	resp, err := http.Get(url)
 	if err != nil {
 		return messages, fmt.Errorf("failed to fetch inbox: %w", err)
 	}
@@ -64,7 +71,8 @@ func (e Email) GetInbox() ([]MessageSummary, error) {
 func (e Email) ReadMessage(id int) (Message, error) {
 	var message Message
 
-	resp, err := http.Get(fmt.Sprintf("%s/?action=readMessage&domain=%s&id=%d", host1SecMail, e, id))
+	url := fmt.Sprintf("%s/?action=readMessage&login=%s&domain=%s&id=%d", host1SecMail, e.username, e.domain, id)
+	resp, err := http.Get(url)
 	if err != nil {
 		return message, fmt.Errorf("failed to fetch message: %w", err)
 	}
@@ -75,6 +83,10 @@ func (e Email) ReadMessage(id int) (Message, error) {
 	}
 
 	return message, nil
+}
+
+func (e Email) String() string {
+	return e.username + "@" + e.domain
 }
 
 // randomString generates a random string with the provided length

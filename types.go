@@ -1,6 +1,9 @@
 package tmpmailgo
 
-type Email string
+type Email struct {
+	username string
+	domain   string
+}
 
 type Domains []string
 
