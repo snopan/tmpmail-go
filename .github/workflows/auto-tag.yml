@@ -1,7 +1,7 @@
 name: Auto Tag
 
 on:
-    push:
+  push:
     branches:
       - main
 
