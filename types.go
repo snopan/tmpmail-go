@@ -12,7 +12,10 @@ type MessageSummary struct {
 }
 
 type Message struct {
-	MessageSummary
+	ID          int          `json:"id"`
+	From        string       `json:"from"`
+	Subject     string       `json:"subject"`
+	Date        string       `json:"date"`
 	Attachments []Attachment `json:"attachments"`
 	Body        string       `json:"body"`
 	TextBody    string       `json:"textBody"`
