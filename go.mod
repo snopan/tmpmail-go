@@ -1,4 +1,4 @@
-module github.com/snopan/tmpmail-go
+module github.com/snopan/tmpmailgo
 
 go 1.21
 
